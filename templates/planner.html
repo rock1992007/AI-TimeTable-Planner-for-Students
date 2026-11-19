@@ -1,0 +1,599 @@
+<div class="classic-page-header">
+  <div class="classic-header-main">
+    <div class="classic-header-text">
+      <div class="classic-eyebrow">ACADEMIC TIMETABLE ARCHITECT</div>
+      <h1 class="classic-page-title">
+        <span>AI Study Timetable Planner</span>
+        <span class="classic-badge" id="subjectCountBadge">4 subjects</span>
+      </h1>
+      <p class="classic-page-subtitle">
+        Enter your subjects, exam dates, and daily availability. The intelligent engine optimizes cognitive load,
+        balances topic difficulty, and formats an actionable schedule ready for focused study and high-resolution PDF printing.
+      </p>
+    </div>
+
+    <!-- Active Stored Plan Badge -->
+    <div id="activeStoredPlanBadge" class="classic-watching-badge" style="display:none;">
+      <span class="watching-icon">📜</span>
+      <span class="watching-label">Active Plan:</span>
+      <strong id="activePlanTitleText">Finals Week Plan</strong>
+      <button type="button" id="btnExitPlanWatch" class="classic-btn-tiny" title="Start new plan">&plus; New</button>
+    </div>
+  </div>
+</div>
+
+<div class="planner-layout classic-planner-layout">
+  <!-- Left Column: Setup & Parameters Form -->
+  <section class="classic-card classic-setup-panel" id="setupFormSection">
+    <!-- Step 1 Header -->
+    <div class="classic-step-section">
+      <div class="classic-section-header">
+        <div class="classic-step-num">01</div>
+        <div class="classic-step-meta">
+          <h2 class="classic-section-title">Subjects & Exam Dates</h2>
+          <span class="classic-section-desc">Add curriculum subjects & upcoming test deadlines</span>
+        </div>
+      </div>
+
+      <!-- Quick Preset Chips -->
+      <div class="classic-presets-container">
+        <span class="classic-presets-label">CURRICULUM PRESETS:</span>
+        <div class="presets-row">
+          <button type="button" class="preset-chip" data-preset="finals">🎓 Finals Week</button>
+          <button type="button" class="preset-chip" data-preset="cs">💻 Computer Science</button>
+          <button type="button" class="preset-chip" data-preset="med">🧬 Pre-Med</button>
+          <button type="button" class="preset-chip" data-preset="highschool">📚 High School</button>
+          <button type="button" class="preset-chip preset-clear" data-preset="clear">&times; Clear</button>
+        </div>
+      </div>
+
+      <!-- Subjects Container -->
+      <div id="subjectsContainer" class="subjects-container classic-subjects-container">
+        <!-- Subject cards generated dynamically by JS -->
+      </div>
+
+      <button type="button" id="btnAddSubject" class="btn btn-secondary classic-btn-outline" style="width:100%">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+        <span>Add Subject Entry</span>
+      </button>
+    </div>
+
+    <!-- Step 2: Study Availability -->
+    <div class="classic-step-section">
+      <div class="classic-section-header">
+        <div class="classic-step-num">02</div>
+        <div class="classic-step-meta">
+          <h2 class="classic-section-title">Availability & Study Intervals</h2>
+          <span class="classic-section-desc">Define daily study hours, windows, and focus duration</span>
+        </div>
+      </div>
+
+      <div class="classic-form-grid-2">
+        <div class="form-group">
+          <label class="form-label" for="startDate">Plan Start Date</label>
+          <input type="date" id="startDate" class="classic-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="daysInput">Total Plan Days</label>
+          <input type="number" id="daysInput" min="1" max="30" value="7" class="classic-input">
+        </div>
+      </div>
+
+      <!-- Duration pills -->
+      <div class="classic-pills-row">
+        <span class="classic-presets-label">DURATION:</span>
+        <div class="presets-row">
+          <button type="button" class="duration-pill active" data-days="7">7 Days</button>
+          <button type="button" class="duration-pill" data-days="14">14 Days</button>
+          <button type="button" class="duration-pill" data-days="21">21 Days</button>
+          <button type="button" class="duration-pill" data-days="30">30 Days</button>
+        </div>
+      </div>
+
+      <div class="classic-form-grid-2">
+        <div class="form-group">
+          <label class="form-label" for="weekdayHours">Weekday Study Hours</label>
+          <input type="number" id="weekdayHours" min="0.5" max="14" step="0.5" value="3.5" class="classic-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="weekendHours">Weekend Study Hours</label>
+          <input type="number" id="weekendHours" min="0.5" max="14" step="0.5" value="5" class="classic-input">
+        </div>
+      </div>
+
+      <div class="classic-form-grid-2">
+        <div class="form-group">
+          <label class="form-label" for="winStart">Earliest Daily Start</label>
+          <input type="time" id="winStart" value="09:00" class="classic-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="winEnd">Latest Daily End</label>
+          <input type="time" id="winEnd" value="21:00" class="classic-input">
+        </div>
+      </div>
+
+      <!-- Focus Presets -->
+      <div class="classic-focus-section">
+        <label class="form-label">Study Focus Style</label>
+        <div class="presets-row" style="margin-bottom:10px">
+          <button type="button" class="preset-chip" onclick="setFocusPreset(25, 5)">🍅 Pomodoro (25m / 5m)</button>
+          <button type="button" class="preset-chip" onclick="setFocusPreset(50, 10)">🧠 Deep Work (50m / 10m)</button>
+          <button type="button" class="preset-chip" onclick="setFocusPreset(90, 15)">⏳ Extended (90m / 15m)</button>
+        </div>
+        <div class="classic-form-grid-2">
+          <div>
+            <label class="form-label" for="sessionMin" style="font-size:0.75rem">Session Length (mins)</label>
+            <input type="number" id="sessionMin" min="20" max="150" value="50" class="classic-input">
+          </div>
+          <div>
+            <label class="form-label" for="breakMin" style="font-size:0.75rem">Rest Break (mins)</label>
+            <input type="number" id="breakMin" min="0" max="60" value="10" class="classic-input">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: AI Configuration & Notes -->
+    <div class="classic-step-section" style="border-bottom:none">
+      <div class="classic-section-header">
+        <div class="classic-step-num">03</div>
+        <div class="classic-step-meta">
+          <h2 class="classic-section-title">Intelligence Engine & Notes</h2>
+          <span class="classic-section-desc">Select Gemini model and student commitments</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="modelSelect">Gemini Reasoning Model</label>
+        <select id="modelSelect" class="classic-select">
+          <option value="gemini-2.5-flash">Gemini 2.5 Flash (Balanced & Fast — Recommended)</option>
+          <option value="gemini-2.0-flash">Gemini 2.0 Flash (High Velocity)</option>
+          <option value="gemini-1.5-flash">Gemini 1.5 Flash (Standard)</option>
+          <option value="gemini-2.5-pro">Gemini 2.5 Pro (Deep Academic Reasoning)</option>
+          <option value="gemini-1.5-pro">Gemini 1.5 Pro (Comprehensive Analysis)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="notes">Student Commitments & Notes (Optional)</label>
+        <textarea id="notes" rows="2" class="classic-textarea"
+          placeholder="e.g. Football practice Tuesdays 5-7pm; prefer math in morning; physics chapter 4 needs double time."></textarea>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="classic-action-buttons">
+        <button type="button" id="btnSampleDemo" class="btn btn-secondary classic-btn-outline" style="flex:1">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <polygon points="5 3 19 12 5 21 5 3" />
+          </svg>
+          <span>Demo Plan</span>
+        </button>
+        <button type="button" id="btnGenerateAI" class="btn btn-primary classic-btn-gold" style="flex:1.6">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path
+              d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+          </svg>
+          <span id="btnGenerateAIText">Generate Timetable</span>
+        </button>
+      </div>
+
+      <!-- Progress status indicator while generating -->
+      <div id="plannerGeneratingBox" class="planner-generating-box classic-generating-box" style="display:none;margin-top:14px">
+        <div style="display:flex;align-items:center;gap:14px">
+          <div class="loading-spinner classic-spinner"></div>
+          <div>
+            <strong id="generatingStatusTitle" class="classic-generating-title">Gemini AI is analyzing your curriculum...</strong>
+            <span id="generatingStatusDesc" class="classic-generating-desc">Weighting exam urgency, balancing difficulty & scheduling focus slots</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="plannerAlert" class="alert alert-error" style="display:none;margin-top:14px"></div>
+    </div>
+  </section>
+
+  <!-- Right Column: Interactive Results & Viewer -->
+  <section class="results-container classic-results-panel" id="resultsSection">
+    <!-- Empty state hero -->
+    <div id="emptyHero" class="classic-card classic-empty-card">
+      <div class="classic-empty-icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+          <line x1="9" y1="7" x2="16" y2="7" />
+          <line x1="9" y1="11" x2="14" y2="11" />
+        </svg>
+      </div>
+      <h3 class="classic-empty-title">Your Academic Timetable Will Appear Here</h3>
+      <p class="classic-empty-subtitle">
+        Fill in your subjects on the left and click <strong>Generate Timetable</strong>, or load a pre-configured <strong>Demo Plan</strong> for immediate inspection. You can track progress, toggle visual layouts, and export cleanly formatted PDF documents.
+      </p>
+      <button type="button" class="btn btn-secondary classic-btn-outline" onclick="$('btnSampleDemo').click()">
+        <span>⚡ Load Instant Demo Plan</span>
+      </button>
+    </div>
+
+    <!-- Active Timetable View -->
+    <div id="activePlanView" hidden>
+      <!-- Plan Generation Ready Banner -->
+      <div id="planReadyBanner" class="classic-ready-banner" style="margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:14px">
+          <span class="classic-ready-seal">✓</span>
+          <div>
+            <div class="classic-ready-title">Timetable Generated & Ready for Study</div>
+            <div class="classic-ready-sub">
+              Your personalized study intervals are active. Mark sessions as completed or export to PDF anytime.
+            </div>
+          </div>
+        </div>
+        <button type="button" class="btn btn-primary classic-btn-gold" id="btnQuickPdfTop" style="padding:6px 16px;font-size:0.84rem">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+          </svg>
+          <span>Download in PDF</span>
+        </button>
+      </div>
+
+      <!-- Plan Completed Celebration Card (Active when 100% of study sessions are completed) -->
+      <div id="planCompletedCard" class="classic-card classic-completed-card" style="display:none;margin-bottom:16px">
+        <div class="classic-completed-ornament">ACADEMIC MILESTONE ACHIEVED</div>
+        <div class="completion-header">
+          <div class="classic-completion-seal">🎖️</div>
+          <div>
+            <div class="completion-title">Plan Completed: 100% Goal Achieved</div>
+            <p class="completion-desc">
+              Commendable dedication! You have successfully mastered every study session in this schedule.
+              Your official Certificate of Completion and final study record are ready for download.
+            </p>
+          </div>
+        </div>
+        <div class="completion-metrics classic-comp-metrics">
+          <div class="comp-metric-item">
+            <span class="comp-metric-label">Sessions Completed</span>
+            <strong id="compSessionsCount" class="comp-metric-val">0 / 0</strong>
+          </div>
+          <div class="comp-metric-item">
+            <span class="comp-metric-label">Total Time Studied</span>
+            <strong id="compTotalHours" class="comp-metric-val">0 hrs</strong>
+          </div>
+          <div class="comp-metric-item">
+            <span class="comp-metric-label">Subjects Covered</span>
+            <strong id="compSubjectCount" class="comp-metric-val">0 subjects</strong>
+          </div>
+          <div class="comp-metric-item">
+            <span class="comp-metric-label">Attainment</span>
+            <strong class="comp-metric-val classic-gold-text">100% Mastered</strong>
+          </div>
+        </div>
+        <div class="completion-actions">
+          <button type="button" id="btnDownloadCertificate" class="btn btn-primary classic-btn-gold" style="padding:8px 18px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <circle cx="12" cy="8" r="7" />
+              <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
+            </svg>
+            <span>Download Completion Certificate (PDF)</span>
+          </button>
+          <button type="button" id="btnDownloadFinalPlanPdf" class="btn btn-secondary classic-btn-outline" style="padding:8px 16px">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="12" y1="18" x2="12" y2="12" />
+              <line x1="9" y1="15" x2="12" y2="18" />
+              <line x1="15" y1="15" x2="12" y2="18" />
+            </svg>
+            <span>Download Final Report (PDF)</span>
+          </button>
+          <button type="button" id="btnCompletedMoreOptions" class="btn btn-secondary classic-btn-outline" style="padding:8px 14px">
+            <span>⚙️ PDF Options</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Summary Card -->
+      <div class="classic-card" style="margin-bottom:16px">
+        <div class="classic-summary-top">
+          <div>
+            <div class="classic-summary-tag">STRATEGIC SUMMARY</div>
+            <p id="planSummary" class="classic-summary-text">
+              Balanced timetable prioritizing imminent exams.
+            </p>
+          </div>
+        </div>
+
+        <!-- Metrics Strip -->
+        <div class="classic-metrics-grid">
+          <div class="classic-metric-cell">
+            <div id="statTotalTime" class="classic-metric-number">0 hrs</div>
+            <div class="classic-metric-sub" id="statPlanDays">Total Study Time</div>
+          </div>
+          <div class="classic-metric-cell">
+            <div id="statTotalSessions" class="classic-metric-number">0</div>
+            <div class="classic-metric-sub">Study Sessions</div>
+          </div>
+          <div class="classic-metric-cell">
+            <div id="statDailyAvg" class="classic-metric-number">0 hrs</div>
+            <div class="classic-metric-sub">Daily Average</div>
+          </div>
+          <div class="classic-metric-cell">
+            <div id="statProgressVal" class="classic-metric-number classic-gold-text">0%</div>
+            <div class="classic-metric-sub" id="statProgressSub">Progress Completed</div>
+          </div>
+        </div>
+
+        <!-- Overall Progress Bar -->
+        <div style="margin-bottom:16px">
+          <div style="display:flex;justify-content:space-between;font-size:0.78rem;font-weight:700;margin-bottom:6px;letter-spacing:0.04em;text-transform:uppercase;color:var(--text-secondary)">
+            <span>Study Completion Track</span>
+            <span id="progressPercent" style="color:var(--text-main)">0%</span>
+          </div>
+          <div class="classic-progress-track">
+            <div id="progressBarFill" class="classic-progress-bar" style="width:0%"></div>
+          </div>
+        </div>
+
+        <!-- Subject Allocation Bar -->
+        <div>
+          <div style="font-size:0.78rem;font-weight:700;margin-bottom:6px;letter-spacing:0.04em;text-transform:uppercase;color:var(--text-secondary)">
+            Subject Distribution
+          </div>
+          <div id="subjectDistBar" class="distribution-bar classic-dist-bar"></div>
+          <div id="subjectDistLegend" class="dist-legend classic-dist-legend"></div>
+        </div>
+
+        <!-- Tips Bullet List -->
+        <div class="classic-tips-container">
+          <div class="classic-tips-header">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path
+                d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+            </svg>
+            <span>Personalized AI Academic Recommendations:</span>
+          </div>
+          <ul id="tipsList" class="classic-tips-list"></ul>
+        </div>
+      </div>
+
+      <!-- Action Toolbar -->
+      <div class="classic-card classic-action-bar" style="margin-bottom:16px">
+        <!-- View mode tabs -->
+        <div class="classic-view-tabs">
+          <button type="button" class="view-tab active" data-view="cards">🗂️ Day Cards</button>
+          <button type="button" class="view-tab" data-view="timeline">⏱️ Timeline</button>
+          <button type="button" class="view-tab" data-view="checklist">☑️ Checklist</button>
+        </div>
+
+        <!-- Filter & Quick actions -->
+        <div class="classic-toolbar-filter">
+          <label for="filterSubjectSelect">Filter:</label>
+          <select id="filterSubjectSelect" class="classic-select-sm">
+            <option value="all">All Subjects</option>
+          </select>
+          <button type="button" id="btnToggleAllSessions" class="btn btn-secondary classic-btn-sm" title="Toggle marking all sessions complete">
+            <span>☑️ Mark All Done</span>
+          </button>
+        </div>
+
+        <!-- Export Buttons -->
+        <div class="classic-toolbar-exports">
+          <button type="button" id="btnSavePlan" class="btn btn-secondary classic-btn-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+              <polyline points="17 21 17 13 7 13 7 21" />
+              <polyline points="7 3 7 8 15 8" />
+            </svg>
+            <span id="savePlanBtnText">Save Plan</span>
+          </button>
+
+          <!-- Primary PDF Download Options Button -->
+          <button type="button" id="btnOpenPdfModal" class="btn btn-primary classic-btn-gold" style="padding:6px 16px"
+            title="Download study schedule as PDF with customizable options">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="12" y1="18" x2="12" y2="12" />
+              <line x1="9" y1="15" x2="12" y2="18" />
+              <line x1="15" y1="15" x2="12" y2="18" />
+            </svg>
+            <span>Download in PDF ▾</span>
+          </button>
+
+          <button type="button" id="btnExportICS" class="btn btn-secondary classic-btn-sm"
+            title="Add to Google or Apple Calendar">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+            <span>.ICS</span>
+          </button>
+          <button type="button" id="btnExportCSV" class="btn btn-secondary classic-btn-sm"
+            title="Download Excel / CSV spreadsheet">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+              <polyline points="10 9 9 9 8 9" />
+            </svg>
+            <span>CSV</span>
+          </button>
+          <button type="button" id="btnPrintPDF" class="btn btn-secondary classic-btn-sm"
+            title="Print clean layout or save as PDF">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 6 2 18 2 18 9" />
+              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+              <rect x="6" y="14" width="12" height="8" />
+            </svg>
+            <span>Print</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- View Container -->
+      <div id="viewContainer" class="classic-view-container"></div>
+    </div>
+  </section>
+</div>
+
+<!-- Modal: Save Plan Title Prompt -->
+<div id="savePlanModal"
+  style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:200;align-items:center;justify-content:center;padding:16px">
+  <div class="classic-card" style="max-width:440px;width:100%;padding:26px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <h3 style="font-size:1.25rem;font-weight:800;font-family:var(--font-serif);margin:0">Save Study Timetable</h3>
+      <button type="button" class="btn-ghost btn-icon-only"
+        onclick="$('savePlanModal').style.display='none'">&times;</button>
+    </div>
+    <p style="font-size:0.85rem;color:var(--text-secondary);margin:0 0 14px;line-height:1.5">
+      Provide a title for your timetable to access and track it anytime from the <strong>Saved Plans</strong> registry.
+    </p>
+    <form id="savePlanForm">
+      <div class="form-group">
+        <label class="form-label" for="planTitleInput">Timetable Title</label>
+        <input type="text" id="planTitleInput" placeholder="e.g. Finals Week Study Plan" required maxlength="100" class="classic-input">
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px">
+        <button type="button" class="btn btn-ghost" onclick="$('savePlanModal').style.display='none'">Cancel</button>
+        <button type="submit" class="btn btn-primary classic-btn-gold">Save to My Account</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: PDF Download Options -->
+<div id="pdfOptionsModal" class="modal-overlay" style="display:none">
+  <div class="classic-card classic-modal-card" style="max-width:620px;width:100%;padding:28px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="classic-pdf-modal-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="12" y1="18" x2="12" y2="12" />
+            <line x1="9" y1="15" x2="12" y2="18" />
+            <line x1="15" y1="15" x2="12" y2="18" />
+          </svg>
+        </div>
+        <div>
+          <h3 style="font-size:1.3rem;font-weight:800;font-family:var(--font-serif);margin:0">PDF Publication Options</h3>
+          <p style="font-size:0.82rem;color:var(--text-secondary);margin:0">Choose layout format, typography & print options</p>
+        </div>
+      </div>
+      <button type="button" class="btn-ghost btn-icon-only" id="btnClosePdfModal">&times;</button>
+    </div>
+
+    <!-- 1. Layout Format Selection -->
+    <label class="form-label" style="font-weight:700;margin-top:14px;margin-bottom:8px">1. Select Document Layout Format</label>
+    <div class="pdf-format-grid classic-pdf-format-grid" id="pdfFormatSelectionGrid">
+      <div class="pdf-format-card classic-format-card active" data-format="detailed">
+        <div class="pdf-format-icon">📅</div>
+        <div class="pdf-format-info">
+          <strong>Full Timetable Schedule</strong>
+          <p>Multi-day cards with all sessions, time slots, topics & AI study tips.</p>
+        </div>
+      </div>
+
+      <div class="pdf-format-card classic-format-card" data-format="checklist">
+        <div class="pdf-format-icon">☑️</div>
+        <div class="pdf-format-info">
+          <strong>Action Checklist Tracker</strong>
+          <p>Clean tabular checklist with checkboxes, ideal for printing & desk study.</p>
+        </div>
+      </div>
+
+      <div class="pdf-format-card classic-format-card" data-format="summary">
+        <div class="pdf-format-icon">📊</div>
+        <div class="pdf-format-info">
+          <strong>Executive Summary & Strategy</strong>
+          <p>Subject hours allocation, exam countdowns, daily averages & coaching.</p>
+        </div>
+      </div>
+
+      <div class="pdf-format-card classic-format-card" data-format="certificate">
+        <div class="pdf-format-icon">🎓</div>
+        <div class="pdf-format-info">
+          <strong>Completion Certificate</strong>
+          <p>Official study completion certificate with your name, date & verified progress.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Page & Print Settings -->
+    <label class="form-label" style="font-weight:700;margin-top:16px;margin-bottom:8px">2. Page & Paper Dimensions</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">
+      <div class="form-group" style="margin:0">
+        <label class="form-label" for="pdfOrientation" style="font-size:0.75rem">Orientation</label>
+        <select id="pdfOrientation" class="classic-select" style="padding:8px 10px;font-size:0.85rem">
+          <option value="portrait">📄 Portrait (Vertical)</option>
+          <option value="landscape">📑 Landscape (Horizontal)</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin:0">
+        <label class="form-label" for="pdfPaperSize" style="font-size:0.75rem">Paper Size</label>
+        <select id="pdfPaperSize" class="classic-select" style="padding:8px 10px;font-size:0.85rem">
+          <option value="a4">A4 Standard</option>
+          <option value="letter">US Letter</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin:0">
+        <label class="form-label" for="pdfTheme" style="font-size:0.75rem">Color / Styling</label>
+        <select id="pdfTheme" class="classic-select" style="padding:8px 10px;font-size:0.85rem">
+          <option value="color">🎨 Classic Elegance (Indigo & Gold)</option>
+          <option value="mono">🖨️ Ink-Saver / Clean Monochrome</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 3. Content Inclusions -->
+    <label class="form-label" style="font-size:0.78rem;font-weight:700;margin-bottom:6px">3. Include in Document:</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.83rem;margin-bottom:18px">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="pdfIncludeTips" checked>
+        <span>AI Academic Coaching Tips</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="pdfIncludeDistribution" checked>
+        <span>Subject Allocation Matrix</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="pdfIncludeProgress" checked>
+        <span>Mark Completed Sessions</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="pdfIncludeStudentInfo" checked>
+        <span>Student Identity & Timestamp</span>
+      </label>
+    </div>
+
+    <!-- Modal Actions -->
+    <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);padding-top:16px">
+      <button type="button" class="btn btn-secondary classic-btn-outline" id="btnBrowserPrintFallback" title="Open system print dialog">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 6 2 18 2 18 9" />
+          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+          <rect x="6" y="14" width="12" height="8" />
+        </svg>
+        <span>System Print</span>
+      </button>
+      <div style="display:flex;gap:10px">
+        <button type="button" class="btn btn-ghost" id="btnCancelPdfModal">Cancel</button>
+        <button type="button" class="btn btn-primary classic-btn-gold" id="btnExecuteDownloadPdf" style="padding:9px 22px">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          <span id="btnExecuteDownloadPdfText">Download PDF</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/static/js/html2pdf.bundle.min.js"></script>
+<script src="/static/js/planner.js"></script>

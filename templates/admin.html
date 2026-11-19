@@ -1,0 +1,127 @@
+<!-- Admin Panel - Full Page -->
+<div class="page-header">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+    <div>
+      <h1 class="page-title" style="color:#f87171">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>Admin Control Panel</span>
+        <span class="badge badge-admin">🛡️ ADMIN ONLY</span>
+      </h1>
+      <p class="page-subtitle">
+        Full system oversight: manage all registered users, view each user's separate SQL data file, monitor usage, and inspect the master database.
+      </p>
+    </div>
+  </div>
+</div>
+
+<div id="adminAccessDenied" class="glass-card" style="display:none;text-align:center;padding:56px 24px">
+  <div style="color:#f87171;font-size:2rem;margin-bottom:12px">🚫</div>
+  <h3 style="font-size:1.3rem;font-weight:800;margin:0 0 8px">Access Denied</h3>
+  <p style="color:var(--text-secondary);font-size:0.9rem;max-width:440px;margin:0 auto 20px">
+    This panel is restricted to the system administrator only. You do not have permission to view this page.
+  </p>
+  <a href="/" class="btn btn-primary">Go Back to Home</a>
+</div>
+
+<div id="adminContent" style="display:none">
+  <!-- Admin Summary Stats -->
+  <div class="metrics-grid" style="margin-bottom:24px">
+    <div class="metric-box">
+      <div id="adminStatUsers" class="metric-val" style="color:#f87171">-</div>
+      <div class="metric-label">Total Users</div>
+    </div>
+    <div class="metric-box">
+      <div id="adminStatPlans" class="metric-val" style="color:var(--primary)">-</div>
+      <div class="metric-label">Total Plans Saved</div>
+    </div>
+    <div class="metric-box">
+      <div id="adminStatSessions" class="metric-val" style="color:var(--success)">-</div>
+      <div class="metric-label">Active Sessions</div>
+    </div>
+    <div class="metric-box">
+      <div id="adminStatLogs" class="metric-val" style="color:var(--warning)">-</div>
+      <div class="metric-label">Activity Logs</div>
+    </div>
+  </div>
+
+  <!-- Users Table Card -->
+  <div class="glass-card" style="margin-bottom:24px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <h3 style="font-size:1.1rem;font-weight:800;margin:0">All Registered Users & Separate SQL Files</h3>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="adminUserSearch" placeholder="Search users..." style="width:200px;padding:7px 12px;font-size:0.82rem">
+        <button type="button" id="btnRefreshAdmin" class="btn btn-secondary" style="padding:7px 12px;font-size:0.82rem">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Refresh
+        </button>
+      </div>
+    </div>
+
+    <div class="data-table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email Address</th>
+            <th>Role</th>
+            <th>Saved Plans</th>
+            <th>Last Login</th>
+            <th>SQL Data File</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="adminUsersTableBody">
+          <tr><td colspan="8" style="text-align:center;color:var(--text-muted)">Loading users...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Selected User SQL Viewer -->
+  <div class="glass-card" id="adminUserSqlCard" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div>
+        <h3 style="font-size:1.1rem;font-weight:800;margin:0">Viewing SQL Data File For: <span id="adminViewingSqlUser" style="color:var(--primary)">-</span></h3>
+        <p style="font-size:0.8rem;color:var(--text-muted);margin:4px 0 0">File: <code id="adminViewingSqlFile">-</code></p>
+      </div>
+      <div style="display:flex;gap:8px">
+        <a id="btnAdminDownloadUserSql" href="#" class="btn btn-primary" style="padding:6px 12px;font-size:0.8rem">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download SQL
+        </a>
+        <button type="button" id="btnAdminCopySql" class="btn btn-secondary" style="padding:6px 12px;font-size:0.8rem">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy SQL
+        </button>
+        <button type="button" class="btn btn-ghost" onclick="$('adminUserSqlCard').style.display='none'">&times; Close</button>
+      </div>
+    </div>
+    <pre id="adminSqlViewer" class="sql-viewer-box">Select a user to view their SQL data...</pre>
+  </div>
+
+  <!-- Master DB SQL Viewer -->
+  <div class="glass-card" style="margin-top:24px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div>
+        <h3 style="font-size:1.1rem;font-weight:800;margin:0">🗄️ Master Database SQL Dump</h3>
+        <p style="font-size:0.8rem;color:var(--text-muted);margin:4px 0 0">Full dump of user.db (all tables combined)</p>
+      </div>
+      <div style="display:flex;gap:8px">
+        <a id="btnAdminDownloadMasterSql" href="/api/admin/master-sql/download" class="btn btn-primary" style="padding:6px 12px;font-size:0.8rem">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download Master SQL
+        </a>
+        <button type="button" id="btnAdminCopyMasterSql" class="btn btn-secondary" style="padding:6px 12px;font-size:0.8rem">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy SQL
+        </button>
+        <button type="button" id="btnRefreshMasterSql" class="btn btn-secondary" style="padding:6px 12px;font-size:0.8rem">Refresh</button>
+      </div>
+    </div>
+    <pre id="adminMasterSqlViewer" class="sql-viewer-box">Loading master database dump...</pre>
+  </div>
+</div>
+
+<script src="/static/js/admin.js"></script>
+

@@ -1,0 +1,114 @@
+<div class="auth-wrapper">
+  <div class="glass-card auth-card">
+    <div class="auth-header">
+      <div class="auth-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7.5" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+      </div>
+      <h2>Create Student Account</h2>
+      <p>Register with your name, email, and password to start creating and saving custom study plans.</p>
+    </div>
+
+    <!-- Alert container -->
+    <div id="registerAlert" class="alert alert-error" style="display:none"></div>
+
+    <form id="registerForm">
+      <div class="form-group">
+        <label class="form-label" for="regName">Full Name</label>
+        <input type="text" id="regName" placeholder="e.g. Alex Johnson" required autocomplete="name">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="regEmail">Email Address</label>
+        <input type="email" id="regEmail" placeholder="e.g. alex@university.edu" required autocomplete="email">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="regPassword">Password (minimum 6 characters)</label>
+        <input type="password" id="regPassword" placeholder="Create a password" required minlength="6" autocomplete="new-password">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="regPasswordConfirm">Confirm Password</label>
+        <input type="password" id="regPasswordConfirm" placeholder="Re-enter your password" required minlength="6" autocomplete="new-password">
+      </div>
+
+      <button type="submit" id="btnSubmitRegister" class="btn btn-primary" style="width:100%;padding:10px;margin-top:8px">
+        <span>Create Account</span>
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      Already have an account? <a href="/login">Log in here</a>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const form = $("registerForm");
+  const alertEl = $("registerAlert");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    alertEl.style.display = "none";
+    const name = $("regName").value.trim();
+    const email = $("regEmail").value.trim().toLowerCase();
+    const password = $("regPassword").value;
+    const confirm = $("regPasswordConfirm").value;
+
+    if (!name || !email || !password) {
+      alertEl.textContent = "Please fill in all required fields.";
+      alertEl.style.display = "flex";
+      return;
+    }
+
+    if (password !== confirm) {
+      alertEl.textContent = "Passwords do not match. Please re-enter.";
+      alertEl.style.display = "flex";
+      return;
+    }
+
+    if (password.length < 6) {
+      alertEl.textContent = "Password must be at least 6 characters long.";
+      alertEl.style.display = "flex";
+      return;
+    }
+
+    try {
+      const btn = $("btnSubmitRegister");
+      btn.disabled = true;
+      btn.textContent = "Creating Account...";
+
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password })
+      });
+
+      const data = await res.json();
+      btn.disabled = false;
+      btn.innerHTML = `<span>Create Account</span>`;
+
+      if (!res.ok || !data.ok) {
+        alertEl.textContent = data.error || "Registration failed.";
+        alertEl.style.display = "flex";
+        return;
+      }
+
+      localStorage.setItem("sst.auth_token", data.token);
+      showToast(`Welcome, ${data.user.name}! Your account is ready.`);
+
+      setTimeout(() => {
+        window.location.href = "/planner";
+      }, 500);
+
+    } catch (err) {
+      alertEl.textContent = "Unable to connect to server. Please try again.";
+      alertEl.style.display = "flex";
+      $("btnSubmitRegister").disabled = false;
+      $("btnSubmitRegister").innerHTML = `<span>Create Account</span>`;
+    }
+  });
+});
+</script>
+

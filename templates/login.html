@@ -1,0 +1,122 @@
+<div class="auth-wrapper">
+  <div class="glass-card auth-card">
+    <div class="auth-header">
+      <div class="auth-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+          <polyline points="10 17 15 12 10 7" />
+          <line x1="15" y1="12" x2="3" y2="12" />
+        </svg>
+      </div>
+      <h2>Account Sign In</h2>
+      <p>Log in with your email address and password to access your study timetables.</p>
+    </div>
+
+    <!-- Alert container -->
+    <div id="loginAlert" class="alert alert-error" style="display:none"></div>
+
+    <!-- Admin Access Hint Callout -->
+
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label class="form-label" for="loginEmail">Email Address</label>
+        <input type="email" id="loginEmail" placeholder="example@gmail.com" required autocomplete="email">
+      </div>
+
+      <div class="form-group">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <label class="form-label" for="loginPassword" style="margin:0">Password</label>
+          <button type="button" id="togglePassword" class="btn-ghost"
+            style="padding:0;font-size:0.75rem;height:auto">Show password</button>
+        </div>
+        <input type="password" id="loginPassword" placeholder="Enter your password" required
+          autocomplete="current-password">
+      </div>
+
+      <button type="submit" id="btnSubmitLogin" class="btn btn-primary" style="width:100%;padding:10px;margin-top:8px">
+        <span>Sign In to Account</span>
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      Don't have an account yet? <a href="/register">Create an account here</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const form = $("loginForm");
+    const alertEl = $("loginAlert");
+    const pwdInput = $("loginPassword");
+    const toggleBtn = $("togglePassword");
+
+    toggleBtn.addEventListener("click", () => {
+      if (pwdInput.type === "password") {
+        pwdInput.type = "text";
+        toggleBtn.textContent = "Hide password";
+      } else {
+        pwdInput.type = "password";
+        toggleBtn.textContent = "Show password";
+      }
+    });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      alertEl.style.display = "none";
+      const email = $("loginEmail").value.trim().toLowerCase();
+      const password = pwdInput.value;
+
+      if (!email || !password) {
+        alertEl.textContent = "Please provide both email and password.";
+        alertEl.style.display = "flex";
+        return;
+      }
+
+      try {
+        const btn = $("btnSubmitLogin");
+        btn.disabled = true;
+        btn.textContent = "Authenticating...";
+
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+        btn.disabled = false;
+        btn.innerHTML = `<span>Sign In to Account</span>`;
+
+        if (!res.ok || !data.ok) {
+          alertEl.textContent = data.error || "Invalid email or password.";
+          alertEl.style.display = "flex";
+          return;
+        }
+
+        localStorage.setItem("sst.auth_token", data.token);
+        showToast(`Welcome, ${data.user.name || data.user.email}!`);
+
+        // Check if redirect query param exists or if admin
+        const params = new URLSearchParams(window.location.search);
+        const next = params.get("next");
+        setTimeout(() => {
+          if (next) {
+            window.location.href = next;
+          } else if (data.user.is_admin) {
+            window.location.href = "/admin";
+          } else {
+            window.location.href = "/planner";
+          }
+        }, 400);
+
+      } catch (err) {
+        alertEl.textContent = "Unable to connect to server. Please try again.";
+        alertEl.style.display = "flex";
+        $("btnSubmitLogin").disabled = false;
+        $("btnSubmitLogin").innerHTML = `<span>Sign In to Account</span>`;
+      }
+    });
+  });
+</script>

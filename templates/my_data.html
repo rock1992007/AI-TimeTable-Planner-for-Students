@@ -1,0 +1,140 @@
+<div class="page-header">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+    <div>
+      <h1 class="page-title">
+        <span id="myDataPageTitle">My Account</span>
+        <span class="badge badge-student" id="myRoleBadge">Student</span>
+      </h1>
+      <p class="page-subtitle" id="myDataPageSubtitle">
+        Review your account profile and project access history.
+      </p>
+    </div>
+    <!-- Admin-only SQL Actions (hidden for normal users) -->
+    <div id="adminSqlActions" style="display:none;gap:8px">
+      <button type="button" id="btnRefreshSql" class="btn btn-secondary">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        <span>Refresh SQL</span>
+      </button>
+      <a id="btnDownloadSql" href="/api/user/sql/download" class="btn btn-primary">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span>Download My SQL File</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Logged out notice -->
+<div id="myDataAuthNotice" class="glass-card" style="display:none;text-align:center;padding:48px 24px">
+  <div style="width:52px;height:52px;border-radius:14px;background:rgba(99,102,241,0.12);color:var(--primary);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+  </div>
+  <h3 style="font-size:1.3rem;font-weight:800;margin:0 0 8px">Sign In to View Your Account</h3>
+  <p style="color:var(--text-secondary);font-size:0.9rem;max-width:440px;margin:0 auto 20px">
+    Sign in to access your personal account data, saved study plans, and project access logs.
+  </p>
+  <a href="/login?next=/my-data" class="btn btn-primary" style="padding:10px 24px">
+    <span>Sign In to Account</span>
+  </a>
+</div>
+
+<div id="myDataContent" style="display:none">
+  <!-- Profile & Stats Grid -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:20px;margin-bottom:24px">
+    <!-- User Profile Card -->
+    <div class="glass-card">
+      <h3 style="font-size:1.1rem;font-weight:800;margin:0 0 14px;display:flex;align-items:center;gap:8px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Account Profile</span>
+      </h3>
+      <div style="display:flex;flex-direction:column;gap:10px;font-size:0.88rem">
+        <div style="display:flex;justify-content:space-between">
+          <span style="color:var(--text-muted)">Full Name:</span>
+          <strong id="myProfileName">-</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span style="color:var(--text-muted)">Email Address:</span>
+          <strong id="myProfileEmail" style="word-break:break-all">-</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span style="color:var(--text-muted)">Account Role:</span>
+          <span id="myProfileRole">-</span>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span style="color:var(--text-muted)">Member Since:</span>
+          <span id="myProfileCreated">-</span>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span style="color:var(--text-muted)">Last Login:</span>
+          <span id="myProfileLogin">-</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account / Storage Overview Box -->
+    <div class="glass-card">
+      <h3 style="font-size:1.1rem;font-weight:800;margin:0 0 10px;display:flex;align-items:center;gap:8px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        <span id="accountOverviewTitle">Account Overview</span>
+      </h3>
+      <p id="accountOverviewDesc" style="font-size:0.85rem;color:var(--text-secondary);margin:0 0 12px;line-height:1.5">
+        Overview of your saved study timetables and account activity events.
+      </p>
+      <!-- Admin-only SQL File Notice -->
+      <div id="adminSqlFilePathNotice" style="display:none;margin-bottom:12px;font-size:0.82rem;color:var(--text-muted)">
+        Dedicated SQL File: <code id="mySqlFilename" style="color:var(--primary);font-family:var(--font-mono)">user_data/your_email.sql</code>
+      </div>
+      <div style="display:flex;gap:10px">
+        <div class="metric-box" style="flex:1">
+          <div id="statMyPlans" class="metric-val">0</div>
+          <div class="metric-label">Saved Plans</div>
+        </div>
+        <div class="metric-box" style="flex:1">
+          <div id="statMyLogs" class="metric-val">0</div>
+          <div class="metric-label">Access Events</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dedicated User SQL Code Viewer (ADMIN ONLY - completely hidden from normal users) -->
+  <div id="adminSqlViewerSection" class="glass-card" style="margin-bottom:24px;display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <h3 style="font-size:1.1rem;font-weight:800;margin:0">Live SQL Dump: <code id="mySqlHeaderFilename" style="font-size:0.9rem">user_data.sql</code></h3>
+        <span class="badge badge-admin" style="font-size:0.7rem">Admin Access</span>
+      </div>
+      <button type="button" id="btnCopySql" class="btn btn-secondary" style="padding:6px 12px;font-size:0.8rem">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        <span>Copy SQL</span>
+      </button>
+    </div>
+    <pre id="mySqlViewer" class="sql-viewer-box">Loading your dedicated SQL data file...</pre>
+  </div>
+
+  <!-- User Activity & Access Logs Table -->
+  <div class="glass-card">
+    <div style="margin-bottom:14px">
+      <h3 style="font-size:1.1rem;font-weight:800;margin:0 0 4px">Project Access & Usage History</h3>
+      <p style="font-size:0.84rem;color:var(--text-secondary);margin:0">
+        Record of your logins, timetable generations, saves, and progress updates.
+      </p>
+    </div>
+    <div class="data-table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Action</th>
+            <th>Details & Scope</th>
+            <th>IP Address</th>
+            <th>Timestamp (UTC)</th>
+          </tr>
+        </thead>
+        <tbody id="myActivityTableBody">
+          <tr><td colspan="4" style="text-align:center;color:var(--text-muted)">Loading activity logs...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="/static/js/my_data.js"></script>
