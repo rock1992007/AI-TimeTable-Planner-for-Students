@@ -44,13 +44,13 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 HOST = os.environ.get("HOST", "127.0.0.1")
 PORT = int(os.environ.get("PORT", "8000"))
 DEFAULT_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
-SERVER_KEY = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY") or ""
+SERVER_KEY = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY") or "[GCP_API_KEY]"
 API_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 MAX_BODY = 300_000
 
 # Admin credentials — only this account has admin privileges
-ADMIN_EMAIL = "rock19yash2007@gmail.com"
-ADMIN_PASSWORD = "yash07"
+ADMIN_EMAIL = "[EMAIL_ADDRESS]"
+ADMIN_PASSWORD = "[PASSWORD]"
 
 # File paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))

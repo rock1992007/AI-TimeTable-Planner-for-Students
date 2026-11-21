@@ -36,6 +36,57 @@ function showToast(msg) {
   }, 3200);
 }
 
+// Global File Download Helper
+function downloadFile(filename, content, mime) {
+  const blob = (content instanceof Blob) ? content : new Blob([content], { type: mime || "application/octet-stream" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+// Ensure html2pdf library is dynamically loaded with fallback CDN
+function ensureHtml2Pdf() {
+  if (typeof html2pdf !== "undefined") {
+    return Promise.resolve(window.html2pdf);
+  }
+  return new Promise((resolve, reject) => {
+    const existing = document.querySelector('script[src*="html2pdf"]');
+    if (existing && !existing.dataset.failed) {
+      existing.addEventListener("load", () => {
+        if (typeof html2pdf !== "undefined") resolve(window.html2pdf);
+        else reject(new Error("html2pdf failed to initialize."));
+      });
+      existing.addEventListener("error", () => {
+        existing.dataset.failed = "true";
+        loadFromCdn();
+      });
+      // Safety timeout in case script was already attached or stalled
+      setTimeout(() => {
+        if (typeof html2pdf !== "undefined") resolve(window.html2pdf);
+        else loadFromCdn();
+      }, 1500);
+      return;
+    }
+    loadFromCdn();
+
+    function loadFromCdn() {
+      const cdnScript = document.createElement("script");
+      cdnScript.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
+      cdnScript.onload = () => {
+        if (typeof html2pdf !== "undefined") resolve(window.html2pdf);
+        else reject(new Error("html2pdf failed to load from CDN."));
+      };
+      cdnScript.onerror = () => reject(new Error("Unable to load html2pdf script."));
+      document.head.appendChild(cdnScript);
+    }
+  });
+}
+
 // Theme Management
 function initTheme() {
   const saved = localStorage.getItem(STORE_THEME);

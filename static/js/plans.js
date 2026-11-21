@@ -247,12 +247,25 @@ async function downloadSavedPlanPdf(planId, title) {
       margin: [10, 10, 10, 10],
       filename: `${cleanTitle}.pdf`,
       image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, logging: false },
+      html2canvas: { scale: 2, useCORS: true, logging: false, scrollX: 0, scrollY: 0 },
       jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
     };
 
+    if (typeof ensureHtml2Pdf === "function") {
+      await ensureHtml2Pdf();
+    }
     if (typeof html2pdf !== "undefined") {
-      await html2pdf().set(opt).from(container).save();
+      const worker = html2pdf().set(opt).from(container);
+      try {
+        const pdfBlob = await worker.outputPdf("blob");
+        if (pdfBlob && pdfBlob.size > 0) {
+          downloadFile(`${cleanTitle}.pdf`, pdfBlob, "application/pdf");
+        } else {
+          await worker.save();
+        }
+      } catch (_) {
+        await worker.save();
+      }
       showToast("✅ PDF downloaded successfully!");
     } else {
       window.print();

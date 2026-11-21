@@ -1194,12 +1194,17 @@ async function exportPlanAsPdf(options) {
   const isLandscape = options.orientation === "landscape";
   const widthPx = isLandscape ? "1060px" : "790px";
 
+  // Use fixed positioning so html2canvas can accurately measure and render the DOM
   const container = document.createElement("div");
   container.id = "pdfRenderContainer";
-  container.style.position = "absolute";
-  container.style.left = "-9999px";
+  container.style.position = "fixed";
   container.style.top = "0";
+  container.style.left = "0";
   container.style.width = widthPx;
+  container.style.minHeight = "100vh";
+  container.style.zIndex = "-99999";
+  container.style.opacity = "0.01";
+  container.style.pointerEvents = "none";
   container.style.backgroundColor = "#ffffff";
   container.style.color = "#0f172a";
   container.style.fontFamily = "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif";
@@ -1217,20 +1222,34 @@ async function exportPlanAsPdf(options) {
     margin: isLandscape ? [8, 10, 8, 10] : [10, 10, 10, 10],
     filename: filename,
     image: { type: "jpeg", quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, logging: false },
+    html2canvas: { scale: 2, useCORS: true, logging: false, scrollX: 0, scrollY: 0 },
     jsPDF: { unit: "mm", format: options.paperSize || "a4", orientation: options.orientation || "portrait" }
   };
 
   try {
-    if (typeof html2pdf === "undefined") {
-      throw new Error("html2pdf library is not loaded.");
+    if (typeof ensureHtml2Pdf === "function") {
+      await ensureHtml2Pdf();
     }
-    await html2pdf().set(opt).from(container).save();
+    if (typeof html2pdf === "undefined") {
+      throw new Error("html2pdf library could not be loaded.");
+    }
+    const worker = html2pdf().set(opt).from(container);
+    // Explicitly generate PDF blob and trigger clean download with fallback
+    try {
+      const pdfBlob = await worker.outputPdf("blob");
+      if (pdfBlob && pdfBlob.size > 0) {
+        downloadFile(filename, pdfBlob, "application/pdf");
+      } else {
+        await worker.save();
+      }
+    } catch (_saveErr) {
+      await worker.save();
+    }
     showToast("✅ PDF downloaded successfully!");
   } catch (err) {
     console.error("PDF export error:", err);
-    showToast("Opening browser print dialog as fallback...");
-    window.print();
+    showToast("PDF generation failed: " + (err.message || "Opening print fallback..."));
+    setTimeout(() => window.print(), 800);
   } finally {
     if (container && container.parentNode) {
       container.parentNode.removeChild(container);
