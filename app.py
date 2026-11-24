@@ -4,7 +4,7 @@ Smart Study AI Timetable Generator v3.0
 ========================================
 Multi-Page Architecture with:
   - Email + Password only login (no Google OAuth)
-  - Hardcoded Admin account (rock19yash2007@gmail.com / yash07)
+  - Hardcoded Admin account ([EMAIL_ADDRESS]/ [PASSWORD])
   - Per-user dedicated SQL data files in user_data/ folder
   - User access logs recorded per-user
   - Admin panel with full user management
@@ -44,7 +44,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 HOST = os.environ.get("HOST", "127.0.0.1")
 PORT = int(os.environ.get("PORT", "8000"))
 DEFAULT_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
-SERVER_KEY = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY") or "[GCP_API_KEY]"
+SERVER_KEY = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY")
 API_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 MAX_BODY = 300_000
 
@@ -512,7 +512,7 @@ def dump_user_sql(user_id: int):
         with db_lock:
             conn = get_db()
             cur = conn.cursor()
-            cur.execute("SELECT email, name, auth_provider, created_at, last_login FROM users WHERE id = ?", (user_id,))
+            cur.execute("SELECT email, name, created_at, last_login FROM users WHERE id = ?", (user_id,))
             user_row = cur.fetchone()
             if not user_row:
                 conn.close()
@@ -543,12 +543,11 @@ def dump_user_sql(user_id: int):
             "",
             "-- User Profile Record",
             "CREATE TABLE IF NOT EXISTS user_profile (",
-            "    email TEXT, name TEXT, auth_provider TEXT, created_at TEXT, last_login TEXT",
+            "    email TEXT, name TEXT, created_at TEXT, last_login TEXT",
             ");",
             "DELETE FROM user_profile;",
             f"INSERT INTO user_profile VALUES({_sqlval(email)}, {_sqlval(user_row['name'])}, "
-            f"{_sqlval(user_row['auth_provider'])}, {_sqlval(user_row['created_at'])}, "
-            f"{_sqlval(user_row['last_login'])});",
+            f"{_sqlval(user_row['created_at'])}, {_sqlval(user_row['last_login'])});",
             "",
             "-- Study Timetables",
             "CREATE TABLE IF NOT EXISTS timetables (",
@@ -613,6 +612,7 @@ def init_db():
             name TEXT NOT NULL,
             password_hash TEXT,
             password_salt TEXT,
+            auth_provider TEXT NOT NULL DEFAULT 'email',
             is_admin INTEGER NOT NULL DEFAULT 0,
             created_at TEXT NOT NULL,
             last_login TEXT NOT NULL
@@ -654,6 +654,12 @@ def init_db():
         CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
         CREATE INDEX IF NOT EXISTS idx_logs_user ON access_logs(user_id);
         """)
+
+        # Migration: add auth_provider column to existing DBs that pre-date it
+        try:
+            cur.execute("ALTER TABLE users ADD COLUMN auth_provider TEXT NOT NULL DEFAULT 'email'")
+        except Exception:
+            pass  # Column already exists
 
         # Ensure admin account exists and is correct
         now = datetime.utcnow().isoformat()
@@ -1517,7 +1523,7 @@ class Handler(BaseHTTPRequestHandler):
                     subjects_str = ", ".join(s["name"] for s in req["subjects"])
                     log_access(user_obj["id"], "generate", f"AI plan ({req['days']} days): {subjects_str}", client_ip)
 
-                self._json(200, plan)
+                return self._json(200, plan)
 
             except InputError as err:
                 self._json(400, {"error": str(err)})

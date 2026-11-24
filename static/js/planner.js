@@ -688,19 +688,6 @@ async function requestTimetable(endpoint, payload) {
   }
 }
 
-// File Download Helper
-function downloadFile(filename, content, mime) {
-  const blob = new Blob([content], { type: mime });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
 // Calendar Export (.ics)
 function toICS(plan) {
   const lines = [
@@ -714,14 +701,14 @@ function toICS(plan) {
   for (const day of plan.days || []) {
     const dateClean = (day.date || "").replace(/-/g, "");
     for (const s of day.sessions || []) {
-      const sStart = (s.start || "").replace(":", "");
-      const sEnd = (s.end || "").replace(":", "");
+      const sStart = (s.start || "").replace(/:/g, "");
+      const sEnd = (s.end || "").replace(/:/g, "");
       lines.push(
         "BEGIN:VEVENT",
         `UID:${dateClean}-${sStart}-${Math.random().toString(36).slice(2)}@smartstudyai`,
-        `DTSTAMP:${dateClean}T${sStart}00`,
-        `DTSTART:${dateClean}T${sStart}00`,
-        `DTEND:${dateClean}T${sEnd}00`,
+        `DTSTAMP:${dateClean}T${sStart}00Z`,
+        `DTSTART;TZID=Asia/Kolkata:${dateClean}T${sStart}00`,
+        `DTEND;TZID=Asia/Kolkata:${dateClean}T${sEnd}00`,
         `SUMMARY:Study: ${s.subject} [${(s.type || 'learn').toUpperCase()}]`,
         `DESCRIPTION:Topic: ${s.topic || 'Review'}\\nType: ${s.type || 'learn'}`,
         "BEGIN:VALARM",
